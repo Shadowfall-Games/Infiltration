@@ -5,12 +5,12 @@ using Zenject;
 public class CinemachineExtensionPOV : CinemachineExtension
 {
     [SerializeField] private float _clampAngle = 80f;
-    [SerializeField] private float horizontalSpeed = 10f;
-    [SerializeField] private float verticalSpeed = 10f;
+    [SerializeField] private float _horizontalSpeed = 10f;
+    [SerializeField] private float _verticalSpeed = 10f;
 
     private InputSystem _inputSystem;
 
-    private Vector3 startingRotation;
+    private Vector3 _startingRot;
 
     [Inject]
     private void Construct(InputSystem inputSystem) => _inputSystem = inputSystem;
@@ -20,10 +20,9 @@ public class CinemachineExtensionPOV : CinemachineExtension
         if (vcam.Follow)
             if (stage == CinemachineCore.Stage.Aim)
             {
-                if (startingRotation == null) startingRotation = transform.localRotation.eulerAngles;
+                if (_startingRot == null) _startingRot = transform.localRotation.eulerAngles;
                 Vector2 deltaInput = _inputSystem.Player.CameraLook.ReadValue<Vector2>();
-                startingRotation.x += deltaInput.x * verticalSpeed * Time.deltaTime;
-                startingRotation.y += deltaInput.y * horizontalSpeed * Time.deltaTime;
+                Vector2 startingRotation = new Vector2(_startingRot.x += deltaInput.x * _verticalSpeed * Time.deltaTime, _startingRot.y += deltaInput.y * _horizontalSpeed * Time.deltaTime);
                 startingRotation.y = Mathf.Clamp(startingRotation.y, -_clampAngle, _clampAngle);
                 state.RawOrientation = Quaternion.Euler(-startingRotation.y, startingRotation.x, 0f);
             }

@@ -275,7 +275,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 36.309, y: 0, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -587,9 +587,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9b948281bbe9d74e9dd036e721e4428, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _clampAngle: 80
-  horizontalSpeed: 10
-  verticalSpeed: 10
+  _clampAngle: 70
+  _horizontalSpeed: 4
+  _verticalSpeed: 4
 --- !u!1 &1185130786
 GameObject:
   m_ObjectHideFlags: 0

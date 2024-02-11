@@ -16,7 +16,7 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 _playerVelocity;
 
-    private float _gravityValue = -9.81f;
+    private const float GRAVITY_VALUE = -9.81f;
 
     [Inject]
     private void Construct(InputSystem inputSystem) => _inputSystem = inputSystem;
@@ -36,17 +36,14 @@ public class PlayerController : MonoBehaviour
         Vector3 move = new Vector3(direction.x, 0f, direction.y);
         move = _cameraTransform.forward * move.z + _cameraTransform.right * move.x;
         move.y = 0f;
+        _playerVelocity.y += GRAVITY_VALUE * Time.deltaTime;
+        move += _playerVelocity * Time.deltaTime;
         _controller.Move(move * Time.deltaTime * _playerSpeed);
-
-        if (move != Vector3.zero) gameObject.transform.forward = move;
-
-        _playerVelocity.y += _gravityValue * Time.deltaTime;
-        _controller.Move(_playerVelocity * Time.deltaTime);
     }
 
     private void Jump(InputAction.CallbackContext callbackContext)
     {
-        if (_controller.isGrounded) _playerVelocity.y += Mathf.Sqrt(_jumpHeight * -3.0f * _gravityValue);
+        if (_controller.isGrounded) _playerVelocity.y += Mathf.Sqrt(_jumpHeight * -3.0f * GRAVITY_VALUE);
     }
 
     private void OnEnable() => _inputSystem.Player.Jump.performed += Jump;
