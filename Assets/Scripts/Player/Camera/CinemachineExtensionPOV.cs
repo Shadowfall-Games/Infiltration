@@ -22,8 +22,7 @@ public class CinemachineExtensionPOV : CinemachineExtension
             {
                 if (_startingRot == null) _startingRot = transform.localRotation.eulerAngles;
                 Vector2 deltaInput = _inputSystem.Player.CameraLook.ReadValue<Vector2>();
-                Vector2 startingRotation = new Vector2(_startingRot.x += deltaInput.x * _verticalSpeed * Time.deltaTime, _startingRot.y += deltaInput.y * _horizontalSpeed * Time.deltaTime);
-                startingRotation.y = Mathf.Clamp(startingRotation.y, -_clampAngle, _clampAngle);
+                Vector2 startingRotation = new Vector2(_startingRot.x += deltaInput.x * _verticalSpeed * Time.deltaTime, startingRotation.y = Mathf.Clamp(_startingRot.y += deltaInput.y * _horizontalSpeed * Time.deltaTime, -_clampAngle, _clampAngle));
                 state.RawOrientation = Quaternion.Euler(-startingRotation.y, startingRotation.x, 0f);
             }
     }

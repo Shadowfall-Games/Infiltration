@@ -1,3 +1,4 @@
+using PlasticPipe.PlasticProtocol.Messages;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Zenject;
@@ -7,78 +8,85 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float _walkSpeed = 2.0f;
     [SerializeField] private float _crouchSpeed;
-    [SerializeField] private float _jumpHeight = 1.0f;
+    [SerializeField] private float _jumpHeight = 1f;
     [SerializeField] private float _crouchHeight = 0.75f;
 
-    [SerializeField] private Transform _cameraTransform;
+    [SerializeField] private GameObject _camera;
 
-    private float _playerSpeed;
+    private float _speed;
 
     private CharacterController _controller;
 
     private InputSystem _inputSystem;
 
-    private Vector3 _playerVelocity;
+    private Vector3 _velocity;
 
-    private bool isPlayerCrouching;
+    private bool isCrouching;
 
-    private const float GRAVITY_VALUE = -9.81f;
+    private const float GRAVITY = -9.81f;
 
     [Inject]
     private void Construct(InputSystem inputSystem) => _inputSystem = inputSystem;
 
     private void Start()
     {
-        _playerSpeed = _walkSpeed;
+        _speed = _walkSpeed;
         _controller = GetComponent<CharacterController>();
 
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    void Update()
+    private void Update()
     {
-        if (_controller.isGrounded && _playerVelocity.y < 0) _playerVelocity.y = 0f;
+        if (_controller.isGrounded && _velocity.y < 0) _velocity.y = 0f;
 
         Vector2 direction = _inputSystem.Player.Movement.ReadValue<Vector2>();
         Vector3 move = new Vector3(direction.x, 0f, direction.y);
-        move = _cameraTransform.forward * move.z + _cameraTransform.right * move.x;
+        move = _camera.transform.forward * move.z + _camera.transform.right * move.x;
         move.y = 0f;
-        _playerVelocity.y += GRAVITY_VALUE * Time.deltaTime;
-        move += _playerVelocity * Time.deltaTime;
-        _controller.Move(move * Time.deltaTime * _playerSpeed);
+
+        _velocity.y += GRAVITY * Time.deltaTime;
+        move += _velocity * Time.deltaTime;
+        _controller.Move(move * Time.deltaTime * _speed);
     }
 
     private void Jump(InputAction.CallbackContext callbackContext)
     {
-        if (isPlayerCrouching) Crouch();
-        if (_controller.isGrounded) _playerVelocity.y += Mathf.Sqrt(_jumpHeight * -3.0f * GRAVITY_VALUE);
+        if (isCrouching) Crouch();
+        if (_controller.isGrounded) _velocity.y += Mathf.Sqrt(_jumpHeight * -3f * GRAVITY);
     }
 
     private void Crouch()
     {
-        isPlayerCrouching = !isPlayerCrouching;
+        isCrouching = !isCrouching;
 
-        if (isPlayerCrouching)
+        if (isCrouching)
         {
-            _controller.transform.localScale = new Vector3(1, _crouchHeight, 1);
-            _playerSpeed = _crouchSpeed;
+            CrouchMechanic(_crouchHeight, _crouchSpeed);
         }
         else
         {
-            _controller.transform.localScale = new Vector3(1, 1, 1);
-            _playerSpeed = _walkSpeed;
+            CrouchMechanic(1f, _walkSpeed);
         }
+    }
+
+    private void Crouch(InputAction.CallbackContext callbackContext) => Crouch();
+
+    private void CrouchMechanic(float crouchHeight, float speed)
+    {
+        _controller.transform.localScale = new Vector3(1, crouchHeight, 1);
+        _speed = speed;
     }
 
     private void OnEnable()
     {
         _inputSystem.Player.Jump.performed += Jump;
-        _inputSystem.Player.Crouch.performed += ctx => Crouch();
+        _inputSystem.Player.Crouch.performed += Crouch;
     }
 
     private void OnDisable()
     {
         _inputSystem.Player.Jump.performed -= Jump;
-        _inputSystem.Player.Crouch.performed -= ctx => Crouch();
+        _inputSystem.Player.Crouch.performed -= Crouch;
     }
 }
