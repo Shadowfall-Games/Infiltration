@@ -62,6 +62,15 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Sprint"",
+                    ""type"": ""Button"",
+                    ""id"": ""4ee0077e-96e2-4908-8d91-329874c39d95"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Hold(duration=0.1)"",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -152,6 +161,17 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
                     ""action"": ""Crouch"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2074b524-b089-4227-bc4e-4e6f1d2b11f5"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Sprint"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -164,6 +184,7 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_CameraLook = m_Player.FindAction("CameraLook", throwIfNotFound: true);
         m_Player_Crouch = m_Player.FindAction("Crouch", throwIfNotFound: true);
+        m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -229,6 +250,7 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_CameraLook;
     private readonly InputAction m_Player_Crouch;
+    private readonly InputAction m_Player_Sprint;
     public struct PlayerActions
     {
         private @InputSystem m_Wrapper;
@@ -237,6 +259,7 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
         public InputAction @CameraLook => m_Wrapper.m_Player_CameraLook;
         public InputAction @Crouch => m_Wrapper.m_Player_Crouch;
+        public InputAction @Sprint => m_Wrapper.m_Player_Sprint;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -258,6 +281,9 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
             @Crouch.started += instance.OnCrouch;
             @Crouch.performed += instance.OnCrouch;
             @Crouch.canceled += instance.OnCrouch;
+            @Sprint.started += instance.OnSprint;
+            @Sprint.performed += instance.OnSprint;
+            @Sprint.canceled += instance.OnSprint;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -274,6 +300,9 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
             @Crouch.started -= instance.OnCrouch;
             @Crouch.performed -= instance.OnCrouch;
             @Crouch.canceled -= instance.OnCrouch;
+            @Sprint.started -= instance.OnSprint;
+            @Sprint.performed -= instance.OnSprint;
+            @Sprint.canceled -= instance.OnSprint;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -297,5 +326,6 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         void OnJump(InputAction.CallbackContext context);
         void OnCameraLook(InputAction.CallbackContext context);
         void OnCrouch(InputAction.CallbackContext context);
+        void OnSprint(InputAction.CallbackContext context);
     }
 }
