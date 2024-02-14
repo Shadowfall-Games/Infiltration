@@ -1358,11 +1358,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _walkSpeed: 4.5
-  _jumpHeight: 6
+  _jumpHeight: 4.5
   _crouchSpeed: 2.6
   _crouchYScale: 0.75
   _sprintSpeed: 7
+  _sprintMaxDuration: 100
+  _takenAwayEnergyValue: 10
+  _sprintBar: {fileID: 728865643}
   _camera: {fileID: 330585543}
+  _speed: 0
 --- !u!1 &2132146542
 GameObject:
   m_ObjectHideFlags: 0

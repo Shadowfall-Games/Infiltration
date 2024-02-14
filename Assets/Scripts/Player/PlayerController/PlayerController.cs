@@ -8,13 +8,13 @@ using Zenject;
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] private float _walkSpeed = 2.0f;
+    [SerializeField] private float _walkSpeed = 2;
 
     private CharacterController _controller;
     private Vector3 _velocity;
 
     [Header("Jump")]
-    [SerializeField] private float _jumpHeight = 1f;
+    [SerializeField] private float _jumpHeight = 1;
 
     [Header("Crouching")]
     [SerializeField] private float _crouchSpeed;
@@ -36,9 +36,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject _camera;
 
     private InputSystem _inputSystem;
-    public float _speed;
+    private float _speed;
 
-    private const float GRAVITY = -18;
+    private const float GRAVITY = -3;
 
     [Inject]
     private void Construct(InputSystem inputSystem) => _inputSystem = inputSystem;
@@ -53,63 +53,59 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (_controller.isGrounded && _velocity.y < 0) _velocity.y = 0f;
+        if (_controller.isGrounded) _velocity.y = 0;
 
         Vector2 direction = _inputSystem.Player.Movement.ReadValue<Vector2>();
-        Vector3 move = new Vector3(direction.x, 0f, direction.y);
-        move = _camera.transform.forward * move.z + _camera.transform.right * move.x;
-        move.y = 0f;
+        Vector3 move = _camera.transform.forward * direction.y + _camera.transform.right * direction.x;
+        move.y = 0;
         _velocity.y += GRAVITY * Time.deltaTime;
-        move += _velocity * Time.deltaTime;
+        move += _velocity;
         _controller.Move(move * Time.deltaTime * _speed);
 
-        if (_isSprinting == true && !_isCrouching) { DecreaseSprintEnergy(); }
-        else { if (_currentSprintDuration != _sprintMaxDuration) { IncreaseSprintEnergy(); } }
+        if (_isSprinting == true) DecreaseSprintEnergy();
+        else IncreaseSprintEnergy();
     }
 
     private void Jump(InputAction.CallbackContext callbackContext)
     {
-        if (_isCrouching) Crouch();
-        if (_controller.isGrounded) _velocity.y += Mathf.Sqrt(_jumpHeight * -2f * GRAVITY);
+        Stand();
+        if (_controller.isGrounded) _velocity.y += Mathf.Sqrt(_jumpHeight * -2 * GRAVITY);
     }
 
-    private void Crouch()
+    private void Crouch() => CrouchLogics(_crouchYScale, _crouchSpeed, true);
+
+    private void Stand() => CrouchLogics(1, _walkSpeed, false);
+
+    private void CrouchLogics(float crouchHeight, float speed, bool isCrouch)
     {
         if (!_controller.isGrounded) return;
-        _isCrouching = !_isCrouching;
 
-        if (_isCrouching == true) CrouchMechanic(_crouchYScale, _crouchSpeed, true);
-        else CrouchMechanic(1f, _walkSpeed, false);
-    }
-    private void CrouchMechanic(float crouchHeight, float speed, bool isCrouch)
-    {
         _controller.transform.localScale = new Vector3(transform.localScale.x, crouchHeight, _controller.transform.localScale.z);
         _speed = speed;
 
-        if (isCrouch) this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y - 0.12f, this.transform.position.z);
-        else this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y + 0.12f, this.transform.position.z);
+        if (isCrouch) { this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y - 0.12f, this.transform.position.z); _isCrouching = true; }
+        else { this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y + 0.12f, this.transform.position.z); _isCrouching = false; }
     }
 
-    private void Sprint()
+    private void StartSprint() => SprintLogics(_sprintSpeed, true);
+
+    private void EndSprint() => SprintLogics(_walkSpeed, false);
+
+    private void SprintLogics(float speed, bool isSprinting)
     {
-        if (!_controller.isGrounded) { return; }
-        _isSprinting = !_isSprinting;
+        if (!_controller.isGrounded) return;
 
-        if (_isCrouching) Crouch();
+        _isSprinting = isSprinting;
 
-        if (_isSprinting == true) { SprintMechanic(_sprintSpeed); }
-        else { SprintMechanic(_walkSpeed); }
-    }
+        if (_isCrouching) Stand();
 
-    private void SprintMechanic(float speed)
-    {
         if (_currentSprintDuration != 0) _speed = speed; 
     }
 
     private void DecreaseSprintEnergy()
     {
         if ((int)Math.Round(_currentSprintDuration) != 0 && !_isCrouching) _currentSprintDuration -= _takenAwayEnergyValue * Time.deltaTime;
-        else Sprint();
+        else EndSprint();
         _sprintBar.value = _currentSprintDuration/100;
     }
 
@@ -121,20 +117,27 @@ public class PlayerController : MonoBehaviour
 
     private void Crouch(InputAction.CallbackContext callbackContext) => Crouch();
 
-    private void Sprint(InputAction.CallbackContext callbackContext) => Sprint();
+    private void Stand(InputAction.CallbackContext callbackContext) => Stand();
+
+    private void StartSprint(InputAction.CallbackContext callbackContext) => StartSprint();
+
+    private void EndSprint(InputAction.CallbackContext callbackContext) => EndSprint();
 
     private void OnEnable()
     {
         _inputSystem.Player.Jump.performed += Jump;
         _inputSystem.Player.Crouch.performed += Crouch;
-        _inputSystem.Player.Sprint.performed += Sprint;
-        _inputSystem.Player.Sprint.canceled += Sprint;
+        _inputSystem.Player.Crouch.canceled += Stand;
+        _inputSystem.Player.Sprint.performed += StartSprint;
+        _inputSystem.Player.Sprint.canceled += EndSprint;
     }
 
     private void OnDisable()
     {
         _inputSystem.Player.Jump.performed -= Jump;
         _inputSystem.Player.Crouch.performed -= Crouch;
-        _inputSystem.Player.Sprint.performed -= Sprint;
+        _inputSystem.Player.Crouch.performed -= Stand;
+        _inputSystem.Player.Sprint.performed -= StartSprint;
+        _inputSystem.Player.Crouch.performed -= EndSprint;
     }
 }
