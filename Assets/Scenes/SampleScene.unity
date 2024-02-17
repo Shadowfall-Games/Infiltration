@@ -372,7 +372,6 @@ GameObject:
   - component: {fileID: 330585545}
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
-  - component: {fileID: 330585548}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -498,21 +497,6 @@ MonoBehaviour:
     mipBias: 0
     varianceClampScale: 0.9
     contrastAdaptiveSharpening: 0
---- !u!114 &330585548
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1f96756ed6038f343bf1f2b4af886bbc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _rotateSpeed: 4
-  _clampAngle: 75
-  _camera: {fileID: 330585543}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -729,6 +713,7 @@ GameObject:
   m_Component:
   - component: {fileID: 728865642}
   - component: {fileID: 728865643}
+  - component: {fileID: 728865644}
   m_Layer: 5
   m_Name: Sprintbar
   m_TagString: Untagged
@@ -754,7 +739,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 354.6, y: 72.3}
+  m_AnchoredPosition: {x: 372, y: 72.3}
   m_SizeDelta: {x: 271.90417, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &728865643
@@ -808,6 +793,22 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &728865644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 728865641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f02f520f4dab464c8d0e5e98ba5f844, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _sprintEnergy: 100
+  _lostEnergyAmount: 10
+  _timeUntilReplenishment: 4
+  _recoveredEneryAmount: 5
 --- !u!1 &794161590
 GameObject:
   m_ObjectHideFlags: 0
@@ -883,37 +884,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 794161590}
   m_CullTransparentMesh: 1
---- !u!1 &928438600
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 928438601}
-  m_Layer: 0
-  m_Name: CameraPosition
-  m_TagString: Untagged
-  m_Icon: {fileID: 1206586993520771344, guid: 0000000000000000d000000000000000, type: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &928438601
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 928438600}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.655, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2089603177}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1026366552
 GameObject:
   m_ObjectHideFlags: 0
@@ -1272,8 +1242,8 @@ RectTransform:
   m_GameObject: {fileID: 1482085882}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.85, y: 0.85, z: 0.85}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2145104828}
   - {fileID: 728865642}
@@ -1281,7 +1251,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 480, y: 270}
+  m_AnchoredPosition: {x: 409, y: 229}
   m_SizeDelta: {x: 960, y: 540}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2089603175
@@ -1341,7 +1311,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 928438601}
   - {fileID: 330585546}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1354,19 +1323,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 2089603175}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 098fdd5d47fc6464badce785e906318a, type: 3}
+  m_Script: {fileID: 11500000, guid: ffde9ac8b27f3ff4c9f2286001e7a026, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _walkSpeed: 4.5
-  _jumpHeight: 4.5
-  _crouchSpeed: 2.6
-  _crouchYScale: 0.75
-  _sprintSpeed: 7
-  _sprintMaxDuration: 100
-  _takenAwayEnergyValue: 10
-  _sprintBar: {fileID: 728865643}
-  _camera: {fileID: 330585543}
-  _speed: 0
+  _runSpeed: 6.5
+  _crouchSpeed: 2
+  _crouchHeight: 0.5
+  _rotateSpeed: 7
+  _jumpForce: 4
+  _gravity: -9.81
+  _sprintbar: {fileID: 728865644}
 --- !u!1 &2132146542
 GameObject:
   m_ObjectHideFlags: 0
