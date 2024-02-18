@@ -1,11 +1,12 @@
-using Codice.CM.Common;
 using System;
+using System.Threading;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Zenject;
+using static UnityEngine.InputSystem.InputAction;
 
 namespace Player
 {
@@ -20,7 +21,22 @@ namespace Player
         [SerializeField] private float _jumpForce = 5;
         [SerializeField] private float _gravity = -9.81f;
 
-        [SerializeField] private Sprintbar _sprintbar;
+        #region SprintbarFields
+        [SerializeField] private float _sprintEnergy = 100;
+        [SerializeField] private float _lostEnergyAmount = 10;
+        [SerializeField] private float _recoveredEneryAmount = 5;
+
+        [SerializeField] private int _timeUntilReplenishment = 4;
+
+        private float _currentSprintEnergy;
+
+        private bool _isSprint;
+
+        private CancellationTokenSource _cts = new CancellationTokenSource();
+
+        public event Action<float> CurrentEnergy;
+
+        #endregion
 
         private InputSystem _inputSystem;
         private CharacterController _characterController;
@@ -32,7 +48,6 @@ namespace Player
         private NativeArray<Vector3> _outputVelocity;
 
         private bool _isCrouch;
-        private bool _isSprint;
 
         [Inject]
         private void Construct(InputSystem inputSystem) => _inputSystem = inputSystem;
@@ -42,7 +57,9 @@ namespace Player
             _inputSystem.Player.Jump.performed += Jump;
             _inputSystem.Player.Crouch.performed += Crouch;
             _inputSystem.Player.Crouch.canceled += Stand;
-            _inputSystem.Player.Sprint.canceled += _sprintbar.CancelTask;
+            _inputSystem.Player.Crouch.canceled += DecreaseEnergy;
+            _inputSystem.Player.Sprint.performed += DecreaseEnergy;
+            _inputSystem.Player.Sprint.performed += IncreaseEnergy;
             _inputSystem.Player.Enable();
 
             _characterController = GetComponent<CharacterController>();
@@ -50,6 +67,8 @@ namespace Player
 
             _outputCamera = new NativeArray<Vector2>(2, Allocator.Persistent);
             _outputVelocity = new NativeArray<Vector3>(2, Allocator.Persistent);
+
+            _currentSprintEnergy = _sprintEnergy;
 
             Cursor.lockState = CursorLockMode.Locked;
         }
@@ -77,7 +96,8 @@ namespace Player
                 CameraAnglesY = _playerCamera.transform.localEulerAngles.y,
                 Direction = _inputSystem.Player.Movement.ReadValue<Vector2>(),
                 IsSprint = _inputSystem.Player.Sprint.IsPressed(),
-                IsCrouch = _inputSystem.Player.Crouch.IsPressed()
+                IsCrouch = _inputSystem.Player.Crouch.IsPressed(),
+                CurrentSprintEnergy = _currentSprintEnergy
             };
 
             jobs[0] = cameraRotateCalculation.Schedule();
@@ -89,10 +109,6 @@ namespace Player
 
             _playerCamera.transform.localEulerAngles = _rotation;
             _characterController.Move(_velocity * Time.deltaTime);
-
-            _isSprint = _inputSystem.Player.Sprint.IsPressed();
-            if (_isSprint) _sprintbar.DecreaseEnergy();
-            else _sprintbar.IncreaseEnergy();
         }
 
         private void FixedUpdate()
@@ -109,26 +125,65 @@ namespace Player
 
             _characterController.height = crouchHeight;
 
-            if (isCrouch) { this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y/2, this.transform.position.z); }
-            else { this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y * 2, this.transform.position.z); }
+            if (isCrouch) { transform.position = new Vector3(transform.position.x, transform.position.y/2, transform.position.z); }
+            else { transform.position = new Vector3(transform.position.x, transform.position.y * 2, transform.position.z); }
         }
 
         private void Crouch() => CrouchInternal(true, _crouchHeight);
 
         private void Stand() => CrouchInternal(false, 2);
 
-        private void Jump(InputAction.CallbackContext _) { if (_characterController.isGrounded && !_isCrouch) _velocity.y = _jumpForce; }
+        private void Jump(CallbackContext _) { if (_characterController.isGrounded && !_isCrouch) _velocity.y = _jumpForce; }
 
-        private void Crouch(InputAction.CallbackContext _) { if (_characterController.isGrounded) Crouch(); }
+        private void Crouch(CallbackContext _) { Crouch(); }
 
-        private void Stand(InputAction.CallbackContext _) { if (_characterController.isGrounded) Stand(); }
+        private void Stand(CallbackContext _) { Stand(); }
+
+        public bool IsCrouch() => _isCrouch;
+
+        #region Sprintbar
+        private async void DecreaseEnergy(CallbackContext _)
+        {
+            if (_inputSystem.Player.Crouch.IsPressed()) return;
+
+            if (_inputSystem.Player.Sprint.IsPressed())
+            {
+                _isSprint = true;
+
+                _cts?.Cancel();
+                _cts = new CancellationTokenSource();
+
+                while (_isSprint == true && _currentSprintEnergy >= 0)
+                {
+                    await Awaitable.WaitForSecondsAsync(0.03f);
+                    _currentSprintEnergy -= _lostEnergyAmount * 0.03f;
+                    CurrentEnergy?.Invoke(_currentSprintEnergy);
+                }
+            }
+        }
+
+        private async void IncreaseEnergy(CallbackContext _)
+        {
+            _isSprint = false;
+            await Awaitable.WaitForSecondsAsync(_timeUntilReplenishment, _cts.Token);
+
+            while (_isSprint == false && _currentSprintEnergy <= _sprintEnergy)
+            {
+                await Awaitable.WaitForSecondsAsync(0.03f);
+                _currentSprintEnergy += _recoveredEneryAmount * 0.03f;
+                CurrentEnergy?.Invoke(_currentSprintEnergy);
+            }
+        }
+        #endregion
 
         private void OnDestroy()
         {
             _inputSystem.Player.Jump.performed -= Jump;
             _inputSystem.Player.Crouch.performed -= Crouch;
             _inputSystem.Player.Crouch.canceled -= Stand;
-            _inputSystem.Player.Sprint.canceled -= _sprintbar.CancelTask;
+            _inputSystem.Player.Crouch.canceled -= DecreaseEnergy;
+            _inputSystem.Player.Sprint.performed -= DecreaseEnergy;
+            _inputSystem.Player.Sprint.performed -= IncreaseEnergy;
             _inputSystem.Player.Disable();
 
             _outputCamera.Dispose();
@@ -165,12 +220,13 @@ namespace Player
             [ReadOnly] public bool IsSprint;
             [ReadOnly] public bool IsCrouch;
             [ReadOnly] public Vector2 Direction;
+            [ReadOnly] public float CurrentSprintEnergy;
             public NativeArray<Vector3> Velocity;
 
             public void Execute()
             {
                 Vector3 velocity = Velocity[0];
-                Direction *= IsCrouch ? CrouchSpeed : IsSprint ? RunSpeed : WalkSpeed;
+                Direction *= IsCrouch ? CrouchSpeed : IsSprint && CurrentSprintEnergy >= 0 ? RunSpeed : WalkSpeed;
                 Vector3 move = Quaternion.Euler(0, CameraAnglesY, 0) * new Vector3(Direction.x, 0, Direction.y);
                 velocity = new Vector3(move.x, velocity.y, move.z);
                 Velocity[1] = velocity;
