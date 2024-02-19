@@ -56,10 +56,11 @@ namespace Player
         {
             _inputSystem.Player.Jump.performed += Jump;
             _inputSystem.Player.Crouch.performed += Crouch;
+            _inputSystem.Player.Crouch.performed += IncreaseEnergy;
             _inputSystem.Player.Crouch.canceled += Stand;
             _inputSystem.Player.Crouch.canceled += DecreaseEnergy;
             _inputSystem.Player.Sprint.performed += DecreaseEnergy;
-            _inputSystem.Player.Sprint.performed += IncreaseEnergy;
+            _inputSystem.Player.Sprint.canceled += IncreaseEnergy;
             _inputSystem.Player.Enable();
 
             _characterController = GetComponent<CharacterController>();
@@ -182,8 +183,9 @@ namespace Player
             _inputSystem.Player.Crouch.performed -= Crouch;
             _inputSystem.Player.Crouch.canceled -= Stand;
             _inputSystem.Player.Crouch.canceled -= DecreaseEnergy;
+            _inputSystem.Player.Crouch.performed -= IncreaseEnergy;
             _inputSystem.Player.Sprint.performed -= DecreaseEnergy;
-            _inputSystem.Player.Sprint.performed -= IncreaseEnergy;
+            _inputSystem.Player.Sprint.canceled -= IncreaseEnergy;
             _inputSystem.Player.Disable();
 
             _outputCamera.Dispose();

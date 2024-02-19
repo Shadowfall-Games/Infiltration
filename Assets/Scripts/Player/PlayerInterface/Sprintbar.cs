@@ -6,18 +6,14 @@ public class Sprintbar : MonoBehaviour
 {
     [SerializeField] private PlayerMovement _playerMovement;
 
-    private Slider _sprintBar;
+    [SerializeField] private Image _sprintbarFilling;
 
 
-    private void Start()
-    {
-        _sprintBar = GetComponent<Slider>();
-        _playerMovement.CurrentEnergy += DisplayEnergy;
-    }
+    private void Start() => _playerMovement.CurrentEnergy += DisplayEnergy;
 
     private void DisplayEnergy(float energy)
     {
-        _sprintBar.value = energy / 100;
+        _sprintbarFilling.fillAmount = energy / 100;
     }
 
     private void OnDestroy() => _playerMovement.CurrentEnergy -= DisplayEnergy;
