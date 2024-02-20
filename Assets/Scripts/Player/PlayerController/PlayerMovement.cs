@@ -4,7 +4,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using Zenject;
 using static UnityEngine.InputSystem.InputAction;
 
@@ -34,7 +33,7 @@ namespace Player
 
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
-        public event Action<float> CurrentEnergy;
+        public event Action<float> EnergyChanged;
 
         #endregion
 
@@ -126,8 +125,7 @@ namespace Player
 
             _characterController.height = crouchHeight;
 
-            if (isCrouch) { transform.position = new Vector3(transform.position.x, transform.position.y/2, transform.position.z); }
-            else { transform.position = new Vector3(transform.position.x, transform.position.y * 2, transform.position.z); }
+            transform.position = isCrouch ? new Vector3(transform.position.x, transform.position.y / 2, transform.position.z) : transform.position = new Vector3(transform.position.x, transform.position.y * 2, transform.position.z);
         }
 
         private void Crouch() => CrouchInternal(true, _crouchHeight);
@@ -156,9 +154,9 @@ namespace Player
 
                 while (_isSprint == true && _currentSprintEnergy >= 0)
                 {
-                    await Awaitable.WaitForSecondsAsync(0.03f);
+                    await Awaitable.WaitForSecondsAsync(0.06f);
                     _currentSprintEnergy -= _lostEnergyAmount * 0.03f;
-                    CurrentEnergy?.Invoke(_currentSprintEnergy);
+                    EnergyChanged?.Invoke(_currentSprintEnergy);
                 }
             }
         }
@@ -170,9 +168,9 @@ namespace Player
 
             while (_isSprint == false && _currentSprintEnergy <= _sprintEnergy)
             {
-                await Awaitable.WaitForSecondsAsync(0.03f);
+                await Awaitable.WaitForSecondsAsync(0.06f);
                 _currentSprintEnergy += _recoveredEneryAmount * 0.03f;
-                CurrentEnergy?.Invoke(_currentSprintEnergy);
+                EnergyChanged?.Invoke(_currentSprintEnergy);
             }
         }
         #endregion
