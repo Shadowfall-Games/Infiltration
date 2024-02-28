@@ -8,7 +8,10 @@ public class CameraAudio : MonoBehaviour
 
     private void OnEnable() => _cameraZoom.CameraZoomed += PlayAudio;
 
-    private void PlayAudio() => _cameraAudioSource.PlayOneShot(_cameraZoomAudioClip);
+    private void PlayAudio()
+    {
+        if (_cameraZoom.CurrentFOV() != _cameraZoom.MaxFOV() && _cameraZoom.CurrentFOV() != _cameraZoom.MinFov()) _cameraAudioSource.PlayOneShot(_cameraZoomAudioClip);
+    }
 
     private void OnDisable() => _cameraZoom.CameraZoomed -= PlayAudio;
 }

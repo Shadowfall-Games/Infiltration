@@ -20,6 +20,8 @@ namespace Player
         [SerializeField] private float _jumpForce = 5;
         [SerializeField] private float _gravity = -9.81f;
 
+        [SerializeField] private CameraZoom _cameraZoom;
+
         #region SprintbarFields
         [SerializeField] private float _sprintEnergy = 100;
         [SerializeField] private float _lostEnergyAmount = 10;
@@ -32,8 +34,6 @@ namespace Player
         private bool _isSprint;
 
         private CancellationTokenSource _cts = new CancellationTokenSource();
-
-        public event Action<float> EnergyChanged;
 
         #endregion
 
@@ -48,6 +48,8 @@ namespace Player
 
         private bool _isCrouch;
 
+        public event Action<float> EnergyChanged;
+
         [Inject]
         private void Construct(InputSystem inputSystem) => _inputSystem = inputSystem;
 
@@ -60,6 +62,8 @@ namespace Player
             _inputSystem.Player.Crouch.canceled += DecreaseEnergy;
             _inputSystem.Player.Sprint.performed += DecreaseEnergy;
             _inputSystem.Player.Sprint.canceled += IncreaseEnergy;
+            _inputSystem.Player.Sprint.performed += _cameraZoom.IncreaseFOV;
+            _inputSystem.Player.Sprint.canceled += _cameraZoom.DecreaseFOV;
             _inputSystem.Player.Enable();
 
             _characterController = GetComponent<CharacterController>();
@@ -143,27 +147,29 @@ namespace Player
         #region Sprintbar
         private async void DecreaseEnergy(CallbackContext _)
         {
-            if (_inputSystem.Player.Crouch.IsPressed()) return;
 
-            if (_inputSystem.Player.Sprint.IsPressed())
+            if (!_inputSystem.Player.Sprint.IsPressed()) return;
+
+            _isSprint = true;
+
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+
+            while (_isSprint == true && _currentSprintEnergy >= 0)
             {
-                _isSprint = true;
-
-                _cts?.Cancel();
-                _cts = new CancellationTokenSource();
-
-                while (_isSprint == true && _currentSprintEnergy >= 0)
-                {
-                    await Awaitable.WaitForSecondsAsync(0.06f);
-                    _currentSprintEnergy -= _lostEnergyAmount * 0.03f;
-                    EnergyChanged?.Invoke(_currentSprintEnergy);
-                }
+                 await Awaitable.WaitForSecondsAsync(0.06f, _cts.Token);
+                 _currentSprintEnergy -= _lostEnergyAmount * 0.03f;
+                 EnergyChanged?.Invoke(_currentSprintEnergy);
             }
         }
 
         private async void IncreaseEnergy(CallbackContext _)
         {
             _isSprint = false;
+
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+
             await Awaitable.WaitForSecondsAsync(_timeUntilReplenishment, _cts.Token);
 
             while (_isSprint == false && _currentSprintEnergy <= _sprintEnergy)
@@ -184,6 +190,8 @@ namespace Player
             _inputSystem.Player.Crouch.performed -= IncreaseEnergy;
             _inputSystem.Player.Sprint.performed -= DecreaseEnergy;
             _inputSystem.Player.Sprint.canceled -= IncreaseEnergy;
+            _inputSystem.Player.Sprint.performed -= _cameraZoom.IncreaseFOV;
+            _inputSystem.Player.Sprint.canceled -= _cameraZoom.DecreaseFOV;
             _inputSystem.Player.Disable();
 
             _outputCamera.Dispose();

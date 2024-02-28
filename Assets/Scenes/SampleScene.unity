@@ -436,8 +436,8 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 100
-  field of view: 60.000004
+  far clip plane: 70
+  field of view: 75
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -529,7 +529,8 @@ MonoBehaviour:
   _mainCamera: {fileID: 330585545}
   _zoomSpeed: 10
   _minFOV: 30
-  _maxFOV: 60
+  _maxFOV: 75
+  _sprintFOV: 100
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1487,6 +1488,7 @@ MonoBehaviour:
   _rotateSpeed: 7
   _jumpForce: 4
   _gravity: -9.81
+  _cameraZoom: {fileID: 330585548}
   _sprintEnergy: 100
   _lostEnergyAmount: 15
   _recoveredEneryAmount: 10
