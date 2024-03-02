@@ -22,6 +22,7 @@ public class CameraZoom : MonoBehaviour
 
     [Inject]
     private void Construct(InputSystem inputSystem) => _inputSystem = inputSystem;
+    
     private void OnEnable()
     {
         _inputSystem.Player.CameraZoom.performed += ChangeFOV;
