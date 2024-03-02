@@ -16,6 +16,7 @@ public class CameraZoom : MonoBehaviour
     private CancellationTokenSource _cts;
 
     private float _currentFOV;
+    private bool _isSprinting;
 
     public event Action CameraZoomed;
 
@@ -32,6 +33,8 @@ public class CameraZoom : MonoBehaviour
 
     private void ChangeFOV(CallbackContext _)
     {
+        if (_isSprinting) return;
+
         _currentFOV -= _inputSystem.Player.CameraZoom.ReadValue<Vector2>().y * _zoomSpeed;
         _currentFOV = Mathf.Clamp(_currentFOV, _minFOV, _maxFOV);
         _mainCamera.fieldOfView = _currentFOV;
@@ -40,6 +43,8 @@ public class CameraZoom : MonoBehaviour
 
     public async void IncreaseFOV(CallbackContext _)
     {
+        _isSprinting = true;
+
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
 
@@ -53,6 +58,8 @@ public class CameraZoom : MonoBehaviour
 
     public async void DecreaseFOV(CallbackContext _)
     {
+        _isSprinting = false;
+
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
 

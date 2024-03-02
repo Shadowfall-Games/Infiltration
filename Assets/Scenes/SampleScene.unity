@@ -1419,6 +1419,7 @@ GameObject:
   - component: {fileID: 2089603177}
   - component: {fileID: 2089603176}
   - component: {fileID: 2089603178}
+  - component: {fileID: 2089603179}
   m_Layer: 0
   m_Name: PlayerController
   m_TagString: Untagged
@@ -1465,8 +1466,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 330585546}
   - {fileID: 1369248749}
+  - {fileID: 330585546}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2089603178
@@ -1493,6 +1494,22 @@ MonoBehaviour:
   _lostEnergyAmount: 15
   _recoveredEneryAmount: 10
   _timeUntilReplenishment: 4
+--- !u!114 &2089603179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2089603175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74fc7610a608fbf4ea07ab1802381bec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _isEnable: 1
+  _amplitude: 0.015
+  _frequency: 10
+  _camera: {fileID: 330585545}
 --- !u!1 &2145104827
 GameObject:
   m_ObjectHideFlags: 0
