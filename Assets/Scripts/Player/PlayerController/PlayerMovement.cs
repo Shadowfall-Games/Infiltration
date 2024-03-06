@@ -111,7 +111,7 @@ namespace Player
             _rotation = _outputCamera[1];
             _velocity = _outputVelocity[1];
 
-            _playerCamera.transform.localEulerAngles = _rotation;
+            _playerCamera.transform.localEulerAngles = new Vector3(_rotation.x, _rotation.y, _playerCamera.transform.localEulerAngles.z);
             _characterController.Move(_velocity * Time.deltaTime);
         }
 
