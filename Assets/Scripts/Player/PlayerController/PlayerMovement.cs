@@ -36,7 +36,7 @@ namespace Player
 
         private bool _isSprint;
 
-        private CancellationTokenSource _cts = new CancellationTokenSource();
+        private CancellationTokenSource _cts;
 
         #endregion
 
@@ -142,9 +142,9 @@ namespace Player
 
         private void Jump(CallbackContext _) { if (_characterController.isGrounded && !_isCrouch) _velocity.y = _jumpForce; }
 
-        private void Crouch(CallbackContext _) { Crouch(); }
+        private void Crouch(CallbackContext _) => Crouch();
 
-        private void Stand(CallbackContext _) { Stand(); }
+        private void Stand(CallbackContext _) => Stand(); 
 
         public bool IsCrouch() => _isCrouch;
 

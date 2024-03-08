@@ -8,14 +8,14 @@ public class DynamicFov : MonoBehaviour
 {
     [SerializeField] private Camera _mainCamera;
     [SerializeField] private float _zoomSpeed = 10;
-    [SerializeField] private float _minFOV = 20;
-    [SerializeField] private float _maxFOV = 60;
-    [SerializeField] private float _sprintFOV = 120;
+    [SerializeField] private float _minFov = 20;
+    [SerializeField] private float _maxFov = 60;
+    [SerializeField] private float _sprintFov = 120;
 
     private InputSystem _inputSystem;
     private CancellationTokenSource _cts;
 
-    private float _currentFOV;
+    private float _currentFov;
     private bool _isSprinting;
 
     public event Action CameraZoomed;
@@ -29,16 +29,16 @@ public class DynamicFov : MonoBehaviour
         _inputSystem.Enable();
     }
 
-    private void Start() => _currentFOV = _mainCamera.fieldOfView;
+    private void Start() => _currentFov = _mainCamera.fieldOfView;
 
 
     private void ChangeFOV(CallbackContext _)
     {
         if (_isSprinting) return;
 
-        _currentFOV -= _inputSystem.Player.CameraZoom.ReadValue<Vector2>().y * _zoomSpeed;
-        _currentFOV = Mathf.Clamp(_currentFOV, _minFOV, _maxFOV);
-        _mainCamera.fieldOfView = _currentFOV;
+        _currentFov -= _inputSystem.Player.CameraZoom.ReadValue<Vector2>().y * _zoomSpeed;
+        _currentFov = Mathf.Clamp(_currentFov, _minFov, _maxFov);
+        _mainCamera.fieldOfView = _currentFov;
         CameraZoomed?.Invoke();
     }
 
@@ -51,11 +51,11 @@ public class DynamicFov : MonoBehaviour
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
 
-        while (_currentFOV < _sprintFOV)
+        while (_currentFov < _sprintFov)
         {
             await Awaitable.WaitForSecondsAsync(0.04f, _cts.Token);
-            _currentFOV = Mathf.Lerp(_currentFOV, _sprintFOV, 0.18f);
-            _mainCamera.fieldOfView = _currentFOV;
+            _currentFov = Mathf.Lerp(_currentFov, _sprintFov, 0.18f);
+            _mainCamera.fieldOfView = _currentFov;
         }
     }
 
@@ -66,19 +66,19 @@ public class DynamicFov : MonoBehaviour
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
 
-        while (_currentFOV > _maxFOV)
+        while (_currentFov > _maxFov)
         {
             await Awaitable.WaitForSecondsAsync(0.04f, _cts.Token);
-            _currentFOV = Mathf.Lerp(_currentFOV, _maxFOV, 0.18f);
-            _mainCamera.fieldOfView = _currentFOV;
+            _currentFov = Mathf.Lerp(_currentFov, _maxFov, 0.18f);
+            _mainCamera.fieldOfView = _currentFov;
         }
     }
 
-    public float CurrentFOV() => _currentFOV;
+    public float CurrentFov() => _currentFov;
 
-    public float MinFov() => _minFOV;
+    public float MinFov() => _minFov;
 
-    public float MaxFOV() => _maxFOV;
+    public float MaxFov() => _maxFov;
 
     private void OnDisable()
     {
