@@ -25,17 +25,22 @@ public class PlayerLeans : MonoBehaviour
         _inputSystem.Player.LeanLeft.performed += LeanLeft;
         _inputSystem.Player.LeanRight.canceled += Reset;
         _inputSystem.Player.LeanLeft.canceled += Reset;
+        _inputSystem.Player.Sprint.performed += Reset;
         _inputSystem.Player.Enable();
     }
 
     private void LeanLeft(CallbackContext _)
     {
+        if (_inputSystem.Player.Sprint.IsPressed()) return;
+
         _targetLean = _leanAngle;
         Lean();
     }
 
     private void LeanRight(CallbackContext _)
     {
+        if (_inputSystem.Player.Sprint.IsPressed()) return;
+
         _targetLean = -_leanAngle;
         Lean();
     }
@@ -51,10 +56,8 @@ public class PlayerLeans : MonoBehaviour
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
 
-        while (+(_leanPivot.localRotation.z - _targetLean) <= 0.2)
+        while (_leanPivot.localRotation.z - _targetLean <= 0.1 || _leanPivot.localRotation.z - _targetLean >= 0.1)
         {
-            Debug.Log(+(_leanPivot.localRotation.z - _targetLean) <= 0.2);
-            Debug.Log(+(_leanPivot.localRotation.z - _targetLean));
             await Awaitable.WaitForSecondsAsync(0.03f, _cts.Token);
             _currentLean = Mathf.SmoothDamp(_currentLean, _targetLean, ref _leanVelocity, _leanSmoothing);
             _leanPivot.localEulerAngles = new Vector3(_leanPivot.localRotation.x, _leanPivot.localRotation.y, _currentLean);
@@ -67,6 +70,7 @@ public class PlayerLeans : MonoBehaviour
         _inputSystem.Player.LeanLeft.performed -= LeanLeft;
         _inputSystem.Player.LeanRight.canceled -= Reset;
         _inputSystem.Player.LeanLeft.canceled -= Reset;
+        _inputSystem.Player.Sprint.performed -= Reset;
         _inputSystem.Player.Disable();
     }
 }

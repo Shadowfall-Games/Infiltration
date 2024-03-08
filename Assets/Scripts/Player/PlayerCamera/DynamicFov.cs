@@ -4,7 +4,7 @@ using UnityEngine;
 using Zenject;
 using static UnityEngine.InputSystem.InputAction;
 
-public class CameraZoom : MonoBehaviour
+public class DynamicFov : MonoBehaviour
 {
     [SerializeField] private Camera _mainCamera;
     [SerializeField] private float _zoomSpeed = 10;
@@ -44,6 +44,8 @@ public class CameraZoom : MonoBehaviour
 
     public async void IncreaseFOV(CallbackContext _)
     {
+        if (_inputSystem.Player.Crouch.IsPressed()) return;
+
         _isSprinting = true;
 
         _cts?.Cancel();

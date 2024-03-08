@@ -14,13 +14,16 @@ namespace Player
     {
         [SerializeField] private float _walkSpeed = 5;
         [SerializeField] private float _runSpeed = 8;
+        [SerializeField] private float _leanSpeed = 3;
         [SerializeField] private float _crouchSpeed = 2;
         [SerializeField] private float _crouchHeight = 0.5f;
         [SerializeField] private float _rotateSpeed = 10;
         [SerializeField] private float _jumpForce = 5;
         [SerializeField] private float _gravity = -9.81f;
 
-        [SerializeField] private CameraZoom _cameraZoom;
+        [SerializeField] private DynamicFov _dynamicFov;
+
+        [SerializeField] Transform _rotationPivot;
 
         #region SprintbarFields
         [SerializeField] private float _sprintEnergy = 100;
@@ -39,7 +42,6 @@ namespace Player
 
         private InputSystem _inputSystem;
         private CharacterController _characterController;
-        private Camera _playerCamera;
 
         private Vector3 _velocity;
         private Vector2 _rotation;
@@ -62,12 +64,12 @@ namespace Player
             _inputSystem.Player.Crouch.canceled += DecreaseEnergy;
             _inputSystem.Player.Sprint.performed += DecreaseEnergy;
             _inputSystem.Player.Sprint.canceled += IncreaseEnergy;
-            _inputSystem.Player.Sprint.performed += _cameraZoom.IncreaseFOV;
-            _inputSystem.Player.Sprint.canceled += _cameraZoom.DecreaseFOV;
+            _inputSystem.Player.Sprint.performed += _dynamicFov.IncreaseFOV;
+            _inputSystem.Player.Sprint.canceled += _dynamicFov.DecreaseFOV;
+            _inputSystem.Player.Crouch.canceled += _dynamicFov.IncreaseFOV;
             _inputSystem.Player.Enable();
 
             _characterController = GetComponent<CharacterController>();
-            _playerCamera = GetComponentInChildren<Camera>();
 
             _outputCamera = new NativeArray<Vector2>(2, Allocator.Persistent);
             _outputVelocity = new NativeArray<Vector3>(2, Allocator.Persistent);
@@ -96,11 +98,13 @@ namespace Player
                 Velocity = _outputVelocity,
                 WalkSpeed = _walkSpeed,
                 RunSpeed = _runSpeed,
+                LeanSpeed = _leanSpeed,
                 CrouchSpeed = _crouchSpeed,
-                CameraAnglesY = _playerCamera.transform.localEulerAngles.y,
+                CameraAnglesY = _rotationPivot.localEulerAngles.y,
                 Direction = _inputSystem.Player.Movement.ReadValue<Vector2>(),
-                IsSprint = _inputSystem.Player.Sprint.IsPressed(),
+                IsSprint = _inputSystem.Player.Crouch.IsPressed() ? false : _inputSystem.Player.Sprint.IsPressed(),
                 IsCrouch = _inputSystem.Player.Crouch.IsPressed(),
+                IsLean = _inputSystem.Player.LeanLeft.IsPressed() || _inputSystem.Player.LeanRight.IsPressed(),
                 CurrentSprintEnergy = _currentSprintEnergy
             };
 
@@ -111,7 +115,7 @@ namespace Player
             _rotation = _outputCamera[1];
             _velocity = _outputVelocity[1];
 
-            _playerCamera.transform.localEulerAngles = new Vector3(_rotation.x, _rotation.y, _playerCamera.transform.localEulerAngles.z);
+            _rotationPivot.localEulerAngles = new Vector3(_rotation.x, _rotation.y, _rotationPivot.localEulerAngles.z);
             _characterController.Move(_velocity * Time.deltaTime);
         }
 
@@ -148,7 +152,7 @@ namespace Player
         private async void DecreaseEnergy(CallbackContext _)
         {
 
-            if (!_inputSystem.Player.Sprint.IsPressed()) return;
+            if (_inputSystem.Player.Crouch.IsPressed()) return;
 
             _isSprint = true;
 
@@ -190,8 +194,9 @@ namespace Player
             _inputSystem.Player.Crouch.performed -= IncreaseEnergy;
             _inputSystem.Player.Sprint.performed -= DecreaseEnergy;
             _inputSystem.Player.Sprint.canceled -= IncreaseEnergy;
-            _inputSystem.Player.Sprint.performed -= _cameraZoom.IncreaseFOV;
-            _inputSystem.Player.Sprint.canceled -= _cameraZoom.DecreaseFOV;
+            _inputSystem.Player.Sprint.performed -= _dynamicFov.IncreaseFOV;
+            _inputSystem.Player.Sprint.canceled -= _dynamicFov.DecreaseFOV;
+            _inputSystem.Player.Crouch.canceled -= _dynamicFov.IncreaseFOV;
             _inputSystem.Player.Disable();
 
             _outputCamera.Dispose();
@@ -224,9 +229,11 @@ namespace Player
             [ReadOnly] public float WalkSpeed;
             [ReadOnly] public float RunSpeed;
             [ReadOnly] public float CrouchSpeed;
+            [ReadOnly] public float LeanSpeed;
             [ReadOnly] public float CameraAnglesY;
             [ReadOnly] public bool IsSprint;
             [ReadOnly] public bool IsCrouch;
+            [ReadOnly] public bool IsLean;
             [ReadOnly] public Vector2 Direction;
             [ReadOnly] public float CurrentSprintEnergy;
             public NativeArray<Vector3> Velocity;
@@ -234,7 +241,7 @@ namespace Player
             public void Execute()
             {
                 Vector3 velocity = Velocity[0];
-                Direction *= IsCrouch ? CrouchSpeed : IsSprint && CurrentSprintEnergy >= 0 ? RunSpeed : WalkSpeed;
+                Direction *= IsCrouch ? CrouchSpeed : IsSprint && CurrentSprintEnergy >= 0 ? RunSpeed : IsLean ? LeanSpeed : WalkSpeed;
                 Vector3 move = Quaternion.Euler(0, CameraAnglesY, 0) * new Vector3(Direction.x, 0, Direction.y);
                 velocity = new Vector3(move.x, velocity.y, move.z);
                 Velocity[1] = velocity;

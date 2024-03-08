@@ -4,14 +4,14 @@ public class CameraAudio : MonoBehaviour
 {
     [SerializeField] private AudioSource _cameraAudioSource;
     [SerializeField] private AudioClip _cameraZoomAudioClip;
-    [SerializeField] private CameraZoom _cameraZoom;
+    [SerializeField] private DynamicFov _dynamicFov;
 
-    private void OnEnable() => _cameraZoom.CameraZoomed += PlayAudio;
+    private void OnEnable() => _dynamicFov.CameraZoomed += PlayAudio;
 
     private void PlayAudio()
     {
-        if (_cameraZoom.CurrentFOV() != _cameraZoom.MaxFOV() && _cameraZoom.CurrentFOV() != _cameraZoom.MinFov()) _cameraAudioSource.PlayOneShot(_cameraZoomAudioClip);
+        if (_dynamicFov.CurrentFOV() != _dynamicFov.MaxFOV() && _dynamicFov.CurrentFOV() != _dynamicFov.MinFov()) _cameraAudioSource.PlayOneShot(_cameraZoomAudioClip);
     }
 
-    private void OnDisable() => _cameraZoom.CameraZoomed -= PlayAudio;
+    private void OnDisable() => _dynamicFov.CameraZoomed -= PlayAudio;
 }
